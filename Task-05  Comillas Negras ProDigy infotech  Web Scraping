@@ -1,0 +1,40 @@
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import com.opencsv.CSVWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+public class EcommerceScraper {
+    public static void main(String[] args) {
+        String url = "https://webscraper.io/test-sites/e-commerce/allinone/computers/laptops";
+        String csvFile = "product_data.csv";
+
+        try {
+            Document doc = Jsoup.connect(url).get();
+            Elements products = doc.select(".thumbnail");
+            List<String[]> productData = new ArrayList<>();
+            productData.add(new String[]{"Product Name", "Price", "Rating"});
+            for (Element product : products) {
+                String name = product.select(".title").text();
+                String price = product.select(".price").text();
+
+                String rating = product.select(".ratings .pull-right").text();
+                productData.add(new String[]{name, price, rating});
+            }
+            writeDataToCSV(csvFile, productData);
+            System.out.println("Data successfully scraped and saved to " + csvFile);
+        } catch (IOException e) {
+            System.err.println("Error during scraping: " + e.getMessage());
+        }
+    }
+    private static void writeDataToCSV(String filePath, List<String[]> data) {
+        try (CSVWriter writer = new CSVWriter(new FileWriter(filePath))) {
+            writer.writeAll(data);
+        } catch (IOException e) {
+            System.err.println("Error writing to CSV: " + e.getMessage());
+        }
+    }
+}
